@@ -447,7 +447,7 @@ function renderDetalleSlot(){
   const slot=(horarios[dia]||[]).find(s=>s.hora===hora);
   const fijos=getFijosSlot(dia,hora);
   document.getElementById('slot-titulo').textContent=dia+' — '+hora;
-  document.getElementById('slot-cupos').textContent=fijos.length+'/'+(slot?slot.cupos:15)+' cupos';
+  document.getElementById('slot-cupos').textContent=fijos.length+'/'+(slot?slot.cupos:5)+' cupos';
   const listDiv=document.getElementById('slot-fijos-list');listDiv.innerHTML='';
   if(!fijos.length){listDiv.innerHTML='<p style="font-size:13px;color:var(--text3)">Ningún socio aún</p>';}
   else{fijos.forEach(s=>{const tag=document.createElement('span');tag.className='hf-tag';tag.innerHTML=`${s.nombre}<button onclick="quitarFijoSlot(${s.id},'${dia}','${hora}')">✕</button>`;listDiv.appendChild(tag);});}
