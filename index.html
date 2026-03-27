@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1D9E75">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FO Gym">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Fuerza Oscura Gym</title>
+<style>
+:root {
+  --green: #1D9E75; --green-dark: #0F6E56; --green-bg: #E1F5EE; --green-text: #085041;
+  --red: #E24B4A; --red-bg: #FCEBEB; --red-text: #501313;
+  --amber: #BA7517; --amber-bg: #FAEEDA; --amber-text: #412402;
+  --blue-bg: #E6F1FB; --blue-text: #0C447C;
+  --bg: #ffffff; --bg2: #f5f5f3; --bg3: #eeede9;
+  --text: #1a1a18; --text2: #6b6b67; --text3: #9a9a96;
+  --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.18);
+  --radius: 8px; --radius-lg: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1c1a; --bg2: #252523; --bg3: #2e2e2b;
+    --text: #f0ede8; --text2: #a8a8a4; --text3: #6b6b67;
+    --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.18);
+    --green-bg: #04342C; --green-text: #9FE1CB;
+    --red-bg: #501313; --red-text: #F7C1C1;
+    --amber-bg: #412402; --amber-text: #FAC775;
+    --blue-bg: #042C53; --blue-text: #B5D4F4;
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; }
+.app { max-width: 480px; margin: 0 auto; background: var(--bg3); min-height: 100vh; padding-bottom: 80px; }
+/* HEADER */
+.header { background: var(--bg); border-bottom: 0.5px solid var(--border); padding: 14px 16px 10px; position: sticky; top: 0; z-index: 50; }
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.header h1 { font-size: 17px; font-weight: 600; }
+.save-ind { font-size: 11px; color: var(--green); opacity: 0; transition: opacity 0.4s; }
+.save-ind.show { opacity: 1; }
+.btn-add { background: var(--green); color: white; border: none; border-radius: var(--radius); padding: 7px 14px; font-size: 13px; font-weight: 500; cursor: pointer; }
+/* NAV BOTTOM */
+.nav-bottom { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--bg); border-top: 0.5px solid var(--border); display: flex; z-index: 50; }
+.nav-bottom button { flex: 1; padding: 10px 4px 14px; border: none; background: transparent; color: var(--text3); font-size: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.nav-bottom button.active { color: var(--green); }
+.nav-icon { font-size: 20px; line-height: 1; }
+/* ALERTAS */
+.alerta { margin: 8px 12px 0; padding: 10px 12px; border-radius: var(--radius); font-size: 13px; display: none; }
+.alerta.show { display: block; }
+.alerta.warn { background: var(--amber-bg); color: var(--amber-text); }
+.alerta.danger { background: var(--red-bg); color: var(--red-text); }
+.alerta ul { margin: 4px 0 0 14px; }
+.alerta li { margin-bottom: 2px; }
+/* MÉTRICAS */
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 12px 0; }
+.metric { background: var(--bg); border-radius: var(--radius-lg); padding: 14px; }
+.metric .label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+.metric .value { font-size: 24px; font-weight: 600; }
+.metric .value.green { color: var(--green); }
+.metric .value.red { color: var(--red); }
+.metric .value.amber { color: var(--amber); }
+/* SECCIONES */
+.section { display: none; padding: 12px; }
+.section.active { display: block; }
+/* CARDS */
+.card { background: var(--bg); border-radius: var(--radius-lg); padding: 14px; margin-bottom: 10px; }
+.card-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+/* BUSCADOR */
+.search-input { width: 100%; padding: 9px 12px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); font-size: 14px; margin-bottom: 12px; }
+/* LISTA SOCIOS */
+.socio-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid var(--border); }
+.socio-item:last-child { border-bottom: none; }
+.avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--blue-bg); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--blue-text); flex-shrink: 0; }
+.socio-info { flex: 1; min-width: 0; }
+.socio-info .nombre { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.socio-info .sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.socio-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+/* BADGES */
+.badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 99px; font-weight: 600; }
+.badge.ok { background: var(--green-bg); color: var(--green-text); }
+.badge.vencido { background: var(--red-bg); color: var(--red-text); }
+.badge.proximo { background: var(--amber-bg); color: var(--amber-text); }
+.badge.neutral { background: var(--bg2); color: var(--text2); }
+.badge.agotado { background: var(--red-bg); color: var(--red-text); }
+.badge.pocas { background: var(--amber-bg); color: var(--amber-text); }
+.badge.pagado { background: var(--green-bg); color: var(--green-text); }
+.plan-pill { font-size: 10px; padding: 2px 7px; border-radius: 99px; background: var(--blue-bg); color: var(--blue-text); font-weight: 500; }
+/* CLASES CTRL */
+.clases-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.clases-ctrl { display: flex; align-items: center; gap: 6px; }
+.clases-btn { width: 26px; height: 26px; border-radius: 50%; border: 0.5px solid var(--border2); background: var(--bg2); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; color: var(--text2); }
+.clases-num { font-size: 13px; font-weight: 600; min-width: 36px; text-align: center; }
+.progress-wrap { flex: 1; height: 4px; background: var(--bg2); border-radius: 99px; overflow: hidden; }
+.progress-bar { height: 100%; border-radius: 99px; }
+/* BOTONES */
+.btn { padding: 8px 14px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); font-size: 13px; cursor: pointer; font-weight: 500; }
+.btn.primary { background: var(--green); color: white; border-color: var(--green-dark); }
+.btn.danger { color: var(--red); border-color: var(--red-bg); }
+.btn.wsp { background: #25D366; color: white; border-color: #1da851; }
+/* DRAWER MODAL */
+.drawer-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; }
+.drawer-bg.open { display: block; }
+.drawer { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--bg); border-radius: 20px 20px 0 0; padding: 20px 16px 36px; z-index: 201; max-height: 90vh; overflow-y: auto; }
+.drawer-handle { width: 36px; height: 4px; background: var(--bg3); border-radius: 99px; margin: 0 auto 16px; }
+.drawer h3 { font-size: 16px; font-weight: 600; margin-bottom: 14px; }
+.field { margin-bottom: 12px; }
+.field label { font-size: 11px; color: var(--text2); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+.field input, .field select { width: 100%; padding: 10px 12px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); font-size: 15px; }
+.drawer-actions { display: flex; gap: 8px; margin-top: 16px; }
+.drawer-actions .btn { flex: 1; text-align: center; padding: 12px; }
+/* HISTORIAL */
+.hist-socio-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid var(--border); cursor: pointer; }
+.hist-socio-row:last-child { border-bottom: none; }
+.timeline-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+.timeline-item:last-child { border-bottom: none; }
+.tl-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); margin-top: 5px; flex-shrink: 0; }
+.tl-content { flex: 1; }
+.tl-row { display: flex; justify-content: space-between; align-items: center; }
+.tl-plan { font-size: 13px; font-weight: 500; }
+.tl-monto { font-size: 13px; font-weight: 600; color: var(--green); }
+.tl-fecha { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.tl-renovacion { font-size: 12px; color: var(--green); margin-top: 2px; }
+.reg-form { background: var(--bg2); border-radius: var(--radius); padding: 12px; margin-bottom: 14px; }
+.reg-form h4 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+.renovacion-preview { font-size: 12px; color: var(--green); margin-top: 6px; display: none; }
+/* RESUMEN */
+.mes-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.mes-nav h3 { font-size: 15px; font-weight: 600; }
+.mes-nav button { padding: 6px 14px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); font-size: 16px; cursor: pointer; }
+.res-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.res-metric { background: var(--bg2); border-radius: var(--radius); padding: 10px; text-align: center; }
+.res-metric .rl { font-size: 10px; color: var(--text2); margin-bottom: 3px; }
+.res-metric .rv { font-size: 16px; font-weight: 600; }
+.res-metric .rv.green { color: var(--green); }
+.bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.bar-label { font-size: 11px; color: var(--text2); width: 70px; flex-shrink: 0; text-align: right; }
+.bar-track { flex: 1; height: 18px; background: var(--bg2); border-radius: var(--radius); overflow: hidden; }
+.bar-fill { height: 100%; background: var(--green); border-radius: var(--radius); transition: width 0.3s; }
+.bar-val { font-size: 11px; font-weight: 500; width: 70px; flex-shrink: 0; }
+.chart-6m { display: flex; align-items: flex-end; gap: 6px; height: 100px; margin-top: 8px; }
+.chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%; }
+.chart-bar { width: 100%; border-radius: 4px 4px 0 0; background: var(--bg2); border: 0.5px solid var(--border); transition: height 0.3s; }
+.chart-bar.active { background: var(--green); border-color: var(--green-dark); }
+.chart-mes { font-size: 10px; color: var(--text2); }
+.chart-val { font-size: 9px; color: var(--text2); }
+/* HORARIOS */
+.dia-section { margin-bottom: 10px; }
+.dia-header { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 0 6px; display: flex; align-items: center; gap: 6px; }
+.dia-hoy { font-size: 10px; background: var(--blue-bg); color: var(--blue-text); padding: 1px 6px; border-radius: 99px; }
+.horario-pill { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 6px; border: 0.5px solid var(--border); cursor: pointer; }
+.horario-hora { font-size: 15px; font-weight: 600; }
+.horario-cupos { font-size: 12px; color: var(--text2); }
+.empty { text-align: center; padding: 2rem; color: var(--text3); font-size: 14px; }
+/* ASISTENCIA */
+.asist-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+.asist-item:last-child { border-bottom: none; }
+.asist-info { flex: 1; }
+.asist-nombre { font-size: 14px; font-weight: 500; }
+.asist-clases { font-size: 12px; color: var(--text2); margin-top: 1px; }
+/* WSP */
+.wsp-btn { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #25D366; color: white; border: none; border-radius: var(--radius); font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-top">
+      <h1>Fuerza Oscura Gym</h1>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="save-ind" id="save-ind">Guardado</span>
+        <button class="btn-add" onclick="openDrawer()">+ Socio</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="alerta-proximo" class="alerta warn"><strong>Por vencer (3 días):</strong><ul id="lista-proximos"></ul></div>
+  <div id="alerta-vencido" class="alerta danger"><strong>Membresías vencidas:</strong><ul id="lista-vencidos"></ul></div>
+  <div id="alerta-clases" class="alerta warn"><strong>Clases agotadas o casi agotadas:</strong><ul id="lista-clases-alert"></ul></div>
+
+  <!-- MÉTRICAS -->
+  <div class="metrics" id="sec-metrics">
+    <div class="metric"><div class="label">Total socios</div><div class="value" id="m-total">0</div></div>
+    <div class="metric"><div class="label">Al día</div><div class="value green" id="m-aldía">0</div></div>
+    <div class="metric"><div class="label">Por vencer</div><div class="value amber" id="m-proximos">0</div></div>
+    <div class="metric"><div class="label">Vencidos</div><div class="value red" id="m-vencidos">0</div></div>
+  </div>
+
+  <!-- SOCIOS -->
+  <div id="sec-socios" class="section active" style="padding-top:10px">
+    <div class="card">
+      <input type="text" class="search-input" id="buscador" placeholder="Buscar socio..." oninput="renderSocios()">
+      <div id="lista-socios"></div>
+    </div>
+  </div>
+
+  <!-- PAGOS -->
+  <div id="sec-pagos" class="section">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="card-title" style="margin:0">Pagos</div>
+        <span style="font-size:12px;color:var(--text2)" id="ingresos-total"></span>
+      </div>
+      <div id="lista-pagos"></div>
+    </div>
+  </div>
+
+  <!-- HISTORIAL -->
+  <div id="sec-historial" class="section">
+    <div id="hist-lista-wrap">
+      <div class="card">
+        <div class="card-title">Historial de pagos</div>
+        <div id="hist-lista"></div>
+      </div>
+    </div>
+    <div id="hist-detalle-wrap" style="display:none">
+      <div class="card">
+        <button class="btn" onclick="volverHistorial()" style="margin-bottom:12px">← Volver</button>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div class="avatar" id="hist-avatar" style="width:44px;height:44px;font-size:15px"></div>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:600" id="hist-nombre"></div>
+            <div style="font-size:12px;color:var(--text2)" id="hist-sub"></div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:10px;color:var(--text2)">Total pagado</div>
+            <div style="font-size:16px;font-weight:600;color:var(--green)" id="hist-total"></div>
+          </div>
+        </div>
+        <div class="reg-form">
+          <h4>Registrar pago <span class="badge pagado">Renueva auto</span></h4>
+          <div class="field"><label>Plan</label>
+            <select id="hp-plan">
+              <option value="8 clases">8 clases — $40.000</option>
+              <option value="12 clases">12 clases — $65.000</option>
+              <option value="20 clases">20 clases — $90.000</option>
+            </select>
+          </div>
+          <div class="field"><label>Fecha de pago</label><input type="date" id="hp-fecha"></div>
+          <div class="field"><label>Nota</label><input type="text" id="hp-nota" placeholder="Opcional..."></div>
+          <div class="renovacion-preview" id="hp-preview"></div>
+          <button class="btn primary" style="width:100%;margin-top:8px;padding:12px" onclick="registrarPago()">Registrar pago</button>
+        </div>
+        <p style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">Historial</p>
+        <div id="hist-timeline"></div>
+        <div class="empty" id="hist-empty" style="display:none">Sin pagos registrados.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div id="sec-resumen" class="section">
+    <div class="card">
+      <div class="mes-nav">
+        <button onclick="cambiarMes(-1)">‹</button>
+        <h3 id="mes-titulo"></h3>
+        <button onclick="cambiarMes(1)">›</button>
+      </div>
+      <div class="res-metrics">
+        <div class="res-metric"><div class="rl">Ingresos</div><div class="rv green" id="res-ingresos">$0</div></div>
+        <div class="res-metric"><div class="rl">Pagos</div><div class="rv" id="res-pagos">0</div></div>
+        <div class="res-metric"><div class="rl">Socios</div><div class="rv" id="res-activos">0</div></div>
+      </div>
+      <p style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">Por plan</p>
+      <div id="res-barras" style="margin-bottom:14px"></div>
+      <p style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">Últimos 6 meses</p>
+      <div class="chart-6m" id="chart-6m"></div>
+      <p style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;margin:14px 0 8px">Detalle</p>
+      <div id="res-detalle"></div>
+      <div class="empty" id="res-empty" style="display:none">Sin pagos este mes.</div>
+    </div>
+  </div>
+
+  <!-- ASISTENCIA -->
+  <div id="sec-asistencia" class="section">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="card-title" style="margin:0">Asistencia de hoy</div>
+        <span style="font-size:11px;color:var(--text2)" id="fecha-hoy"></span>
+      </div>
+      <div id="lista-asistencia"></div>
+    </div>
+  </div>
+
+  <!-- HORARIOS -->
+  <div id="sec-horarios" class="section">
+    <div class="card">
+      <div class="card-title">Horarios semanales</div>
+      <div id="horarios-grid"></div>
+    </div>
+    <div id="horario-detalle-wrap" style="display:none">
+      <div class="card">
+        <button class="btn" onclick="cerrarDetalleHorario()" style="margin-bottom:12px">← Volver</button>
+        <div style="font-size:15px;font-weight:600;margin-bottom:4px" id="hd-titulo"></div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px" id="hd-cupos"></div>
+        <p style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">Inscritos</p>
+        <div id="hd-inscritos" style="margin-bottom:12px"></div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <select id="hd-sel" style="flex:1;padding:8px 10px;border-radius:var(--radius);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:14px"></select>
+          <button class="btn primary" onclick="inscribirHorario()">Inscribir</button>
+        </div>
+        <button class="btn danger" onclick="eliminarHorarioActivo()" style="width:100%">Eliminar este horario</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV BOTTOM -->
+<nav class="nav-bottom">
+  <button class="active" onclick="showSection('socios',this)"><span class="nav-icon">👥</span>Socios</button>
+  <button onclick="showSection('pagos',this)"><span class="nav-icon">💳</span>Pagos</button>
+  <button onclick="showSection('historial',this)"><span class="nav-icon">📋</span>Historial</button>
+  <button onclick="showSection('resumen',this)"><span class="nav-icon">📊</span>Resumen</button>
+  <button onclick="showSection('asistencia',this)"><span class="nav-icon">✅</span>Asistencia</button>
+  <button onclick="showSection('horarios',this)"><span class="nav-icon">🕐</span>Horarios</button>
+</nav>
+
+<!-- DRAWER NUEVO/EDITAR SOCIO -->
+<div class="drawer-bg" id="drawer-bg" onclick="closeDrawerBg(event)">
+  <div class="drawer">
+    <div class="drawer-handle"></div>
+    <h3 id="drawer-titulo">Nuevo socio</h3>
+    <div class="field"><label>Nombre completo</label><input id="f-nombre" type="text" placeholder="Juan Pérez"></div>
+    <div class="field"><label>Teléfono (con código país)</label><input id="f-tel" type="tel" placeholder="+56 9 1234 5678"></div>
+    <div class="field"><label>Plan</label>
+      <select id="f-plan" onchange="actualizarVence()">
+        <option value="8 clases">8 clases — $40.000</option>
+        <option value="12 clases">12 clases — $65.000</option>
+        <option value="20 clases">20 clases — $90.000</option>
+      </select>
+    </div>
+    <div class="field"><label>Fecha de vencimiento</label><input id="f-vence" type="date"></div>
+    <div class="drawer-actions">
+      <button class="btn" onclick="closeDrawer()">Cancelar</button>
+      <button class="btn primary" onclick="guardarSocio()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PLANES = { '8 clases':{precio:40000,total:8,dias:30}, '12 clases':{precio:65000,total:12,dias:30}, '20 clases':{precio:90000,total:20,dias:30} };
+const DIAS_ALERTA = 3;
+const SK = 'fog_gym_v4';
+const DIAS_SEMANA = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const HORARIOS_DEFAULT = { 'Lunes':[{hora:'06:00',cupos:15},{hora:'22:00',cupos:15}],'Martes':[{hora:'06:00',cupos:15},{hora:'22:00',cupos:15}],'Miércoles':[{hora:'06:00',cupos:15},{hora:'22:00',cupos:15}],'Jueves':[{hora:'06:00',cupos:15},{hora:'22:00',cupos:15}],'Viernes':[{hora:'06:00',cupos:15},{hora:'22:00',cupos:15}],'Sábado':[{hora:'09:00',cupos:15},{hora:'13:00',cupos:15}] };
+
+let socios=[], asistencias={}, horarios={}, inscritos={}, historialPagos={};
+let editId=null, histSocioId=null, detalleHorario=null;
+let mesVista={y:new Date().getFullYear(),m:new Date().getMonth()};
+
+function cargarDatos(){
+  try{
+    const s=localStorage.getItem(SK);
+    if(s){const d=JSON.parse(s);socios=d.socios||ds();horarios=d.horarios||JSON.parse(JSON.stringify(HORARIOS_DEFAULT));inscritos=d.inscritos||{};historialPagos=d.historialPagos||dh();}
+    else{socios=ds();horarios=JSON.parse(JSON.stringify(HORARIOS_DEFAULT));inscritos={};historialPagos=dh();}
+  }catch(e){socios=ds();horarios=JSON.parse(JSON.stringify(HORARIOS_DEFAULT));inscritos={};historialPagos=dh();}
+}
+function guardarDatos(){
+  try{localStorage.setItem(SK,JSON.stringify({socios,horarios,inscritos,historialPagos}));const i=document.getElementById('save-ind');i.classList.add('show');setTimeout(()=>i.classList.remove('show'),1800);}catch(e){}
+}
+function ds(){return[{id:1,nombre:'Ana Muñoz',tel:'+56911112222',plan:'12 clases',vence:'2026-03-28',pagado:true,clasesUsadas:5},{id:2,nombre:'Pedro Rojas',tel:'+56933334444',plan:'8 clases',vence:'2026-03-24',pagado:false,clasesUsadas:8},{id:3,nombre:'Carla Vega',tel:'+56955556666',plan:'20 clases',vence:'2026-04-15',pagado:true,clasesUsadas:3},{id:4,nombre:'Luis Soto',tel:'+56977778888',plan:'12 clases',vence:'2026-03-29',pagado:true,clasesUsadas:11}];}
+function dh(){return{1:[{id:'h1',plan:'12 clases',monto:65000,fecha:'2026-02-28',nota:'Renovación febrero',renovacion:'2026-03-28'},{id:'h2',plan:'12 clases',monto:65000,fecha:'2026-01-28',nota:'',renovacion:'2026-02-28'}],2:[{id:'h3',plan:'8 clases',monto:40000,fecha:'2026-02-24',nota:'',renovacion:'2026-03-24'}],3:[{id:'h4',plan:'20 clases',monto:90000,fecha:'2026-03-15',nota:'Primer pago',renovacion:'2026-04-15'},{id:'h5',plan:'12 clases',monto:65000,fecha:'2026-02-10',nota:'',renovacion:'2026-03-10'}],4:[{id:'h6',plan:'12 clases',monto:65000,fecha:'2026-03-01',nota:'',renovacion:'2026-03-31'},{id:'h7',plan:'8 clases',monto:40000,fecha:'2026-01-15',nota:'',renovacion:'2026-02-14'}]};}
+
+function hoy(){return new Date().toISOString().split('T')[0];}
+function dr(v){return Math.ceil((new Date(v)-new Date(hoy()))/86400000);}
+function estSocio(v){const d=dr(v);return d<0?'vencido':d<=DIAS_ALERTA?'proximo':'ok';}
+function estLabel(s){return s==='ok'?'Al día':s==='proximo'?'Por vencer':'Vencido';}
+function ini(n){return n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();}
+function fmt(n){return '$'+n.toLocaleString('es-CL');}
+function cr(s){return Math.max(0,PLANES[s.plan].total-(s.clasesUsadas||0));}
+function ce(s){const r=cr(s);return r===0?'agotado':r<=2?'pocas':'ok';}
+function bc(s){return ce(s)==='agotado'?'#E24B4A':ce(s)==='pocas'?'#BA7517':'#1D9E75';}
+function tpSocio(id){return(historialPagos[id]||[]).reduce((a,p)=>a+p.monto,0);}
+function dhn(){return{1:'Lunes',2:'Martes',3:'Miércoles',4:'Jueves',5:'Viernes',6:'Sábado'}[new Date().getDay()]||null;}
+function gi(dia,hora){return(inscritos[dia]||{})[hora]||[];}
+
+function addDias(f,d){const x=new Date(f+'T12:00:00');x.setDate(x.getDate()+d);return x.toISOString().split('T')[0];}
+function calcNuevaFecha(s,plan,fecha){const dias=PLANES[plan].dias;return addDias(s.vence>hoy()?s.vence:fecha,dias);}
+
+function wspLink(tel,msg){const t=tel.replace(/\D/g,'');return `https://wa.me/${t}?text=${encodeURIComponent(msg)}`;}
+
+// ── ALERTAS ──
+function renderAlertas(){
+  const pr=socios.filter(s=>estSocio(s.vence)==='proximo'),ve=socios.filter(s=>estSocio(s.vence)==='vencido'),sc=socios.filter(s=>ce(s)!=='ok');
+  const bP=document.getElementById('alerta-proximo'),bV=document.getElementById('alerta-vencido'),bC=document.getElementById('alerta-clases');
+  if(pr.length){document.getElementById('lista-proximos').innerHTML=pr.map(s=>{const d=dr(s.vence);return`<li>${s.nombre} — ${d} día${d===1?'':'s'}</li>`}).join('');bP.classList.add('show');}else bP.classList.remove('show');
+  if(ve.length){document.getElementById('lista-vencidos').innerHTML=ve.map(s=>`<li>${s.nombre} — venció el ${s.vence}</li>`).join('');bV.classList.add('show');}else bV.classList.remove('show');
+  if(sc.length){document.getElementById('lista-clases-alert').innerHTML=sc.map(s=>{const r=cr(s);return`<li>${s.nombre} — ${r===0?'agotadas':r+' restante'+(r===1?'':'s')}</li>`}).join('');bC.classList.add('show');}else bC.classList.remove('show');
+}
+
+function renderMetrics(){
+  document.getElementById('m-total').textContent=socios.length;
+  document.getElementById('m-aldía').textContent=socios.filter(s=>estSocio(s.vence)==='ok').length;
+  document.getElementById('m-proximos').textContent=socios.filter(s=>estSocio(s.vence)==='proximo').length;
+  document.getElementById('m-vencidos').textContent=socios.filter(s=>estSocio(s.vence)==='vencido').length;
+}
+
+function renderSocios(){
+  const q=(document.getElementById('buscador').value||'').toLowerCase();
+  const filtrados=socios.filter(s=>s.nombre.toLowerCase().includes(q));
+  const div=document.getElementById('lista-socios'); div.innerHTML='';
+  if(!filtrados.length){div.innerHTML='<div class="empty">No hay socios aún.</div>';return;}
+  filtrados.forEach(s=>{
+    const st=estSocio(s.vence),total=PLANES[s.plan].total,usadas=s.clasesUsadas||0,pct=Math.round(usadas/total*100),cSt=ce(s),dias=dr(s.vence);
+    const item=document.createElement('div'); item.className='socio-item';
+    const wspMsg=`Hola ${s.nombre.split(' ')[0]}, te avisamos que tu membresía en Fuerza Oscura Gym vence el ${s.vence}. ¿Renovamos? 💪`;
+    item.innerHTML=`
+      <div class="avatar">${ini(s.nombre)}</div>
+      <div class="socio-info">
+        <div class="nombre">${s.nombre}</div>
+        <div class="sub"><span class="plan-pill">${s.plan}</span> · vence ${s.vence}</div>
+        <div class="clases-row">
+          <div class="clases-ctrl">
+            <button class="clases-btn" onclick="event.stopPropagation();cambiarClases(${s.id},-1)">−</button>
+            <span class="clases-num">${usadas}/${total}</span>
+            <button class="clases-btn" onclick="event.stopPropagation();cambiarClases(${s.id},1)">+</button>
+          </div>
+          <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${bc(s)}"></div></div>
+          ${cSt!=='ok'?`<span class="badge ${cSt}" style="font-size:9px">${cSt==='agotado'?'Agotadas':cr(s)+' rest.'}</span>`:''}
+        </div>
+      </div>
+      <div class="socio-right">
+        <span class="badge ${st}">${estLabel(st)}</span>
+        <button class="btn" style="font-size:11px;padding:4px 8px" onclick="event.stopPropagation();openDrawer(${s.id})">Editar</button>
+        ${(st==='proximo'||st==='vencido')&&s.tel?`<button class="wsp-btn" onclick="event.stopPropagation();window.open('${wspLink(s.tel,wspMsg)}','_blank')" style="font-size:11px;padding:4px 8px">WSP</button>`:''}
+      </div>`;
+    div.appendChild(item);
+  });
+}
+
+function renderPagos(){
+  const div=document.getElementById('lista-pagos'); div.innerHTML=''; let total=0;
+  socios.forEach(s=>{
+    const st=estSocio(s.vence); if(s.pagado)total+=PLANES[s.plan].precio;
+    const item=document.createElement('div'); item.className='socio-item';
+    item.innerHTML=`<div class="avatar">${ini(s.nombre)}</div><div class="socio-info"><div class="nombre">${s.nombre}</div><div class="sub"><span class="plan-pill">${s.plan}</span> · ${fmt(PLANES[s.plan].precio)}</div></div><div class="socio-right"><span class="badge ${st}">${estLabel(st)}</span><button class="btn ${s.pagado?'':'primary'}" style="font-size:11px;padding:5px 10px" onclick="togglePago(${s.id})">${s.pagado?'Pagado':'Registrar'}</button></div>`;
+    div.appendChild(item);
+  });
+  document.getElementById('ingresos-total').textContent='Total: '+fmt(total);
+}
+
+function renderAsistencia(){
+  document.getElementById('fecha-hoy').textContent=new Date().toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'});
+  const div=document.getElementById('lista-asistencia'); div.innerHTML='';
+  socios.forEach(s=>{
+    const presente=!!asistencias[s.id],r=cr(s);
+    const item=document.createElement('div'); item.className='asist-item';
+    item.innerHTML=`<div class="avatar">${ini(s.nombre)}</div><div class="asist-info"><div class="asist-nombre">${s.nombre}</div><div class="asist-clases">${r} clase${r===1?'':'s'} restante${r===1?'':'s'}</div></div><span class="badge ${presente?'ok':'neutral'}" style="margin-right:6px">${presente?'Presente':'Ausente'}</span><button class="btn" style="font-size:12px;padding:6px 10px" onclick="toggleAsistencia(${s.id})">${presente?'Desmarcar':'Marcar'}</button>`;
+    div.appendChild(item);
+  });
+}
+
+function renderHorarios(){
+  const grid=document.getElementById('horarios-grid'); grid.innerHTML='';
+  const hoyN=dhn();
+  DIAS_SEMANA.forEach(dia=>{
+    const slots=horarios[dia]||[],esHoy=dia===hoyN;
+    const sec=document.createElement('div'); sec.className='dia-section';
+    let html=`<div class="dia-header">${dia}${esHoy?'<span class="dia-hoy">hoy</span>':''}</div>`;
+    slots.forEach(slot=>{
+      const insc=gi(dia,slot.hora),lleno=insc.length>=slot.cupos;
+      html+=`<div class="horario-pill" onclick="verDetalleHorario('${dia}','${slot.hora}')"><div><div class="horario-hora">${slot.hora}</div><div class="horario-cupos">${insc.length}/${slot.cupos} cupos</div></div><span class="badge ${lleno?'vencido':'ok'}">${lleno?'Lleno':'Libre'}</span></div>`;
+    });
+    html+=`<div style="display:flex;gap:6px;margin-top:4px"><input type="time" id="nh-${dia}" style="flex:1;padding:6px 8px;border-radius:var(--radius);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:13px"><button class="btn" style="font-size:12px" onclick="agregarHorario('${dia}')">+ Agregar</button></div>`;
+    sec.innerHTML=html; grid.appendChild(sec);
+  });
+}
+
+function verDetalleHorario(dia,hora){
+  detalleHorario={dia,hora};
+  document.getElementById('horarios-grid').closest('.card').style.display='none';
+  document.getElementById('horario-detalle-wrap').style.display='block';
+  const slot=(horarios[dia]||[]).find(s=>s.hora===hora);
+  document.getElementById('hd-titulo').textContent=dia+' — '+hora;
+  document.getElementById('hd-cupos').textContent=(slot?gi(dia,hora).length:0)+'/'+(slot?slot.cupos:15)+' cupos';
+  renderDetalleHorario();
+}
+
+function renderDetalleHorario(){
+  if(!detalleHorario)return;
+  const{dia,hora}=detalleHorario;
+  const slot=(horarios[dia]||[]).find(s=>s.hora===hora);
+  const inscList=gi(dia,hora),inscSocios=inscList.map(id=>socios.find(s=>s.id===id)).filter(Boolean),noInsc=socios.filter(s=>!inscList.includes(s.id));
+  const div=document.getElementById('hd-inscritos'); div.innerHTML='';
+  if(!inscSocios.length){div.innerHTML='<p style="font-size:13px;color:var(--text3)">Sin inscritos aún</p>';}
+  else{inscSocios.forEach(s=>{const sp=document.createElement('span');sp.className='badge neutral';sp.style.cssText='margin:3px;font-size:12px;padding:4px 8px;display:inline-flex;align-items:center;gap:4px';sp.innerHTML=`${s.nombre}<button onclick="desinscribirHorario(${s.id})" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:13px;padding:0;line-height:1">✕</button>`;div.appendChild(sp);});}
+  const sel=document.getElementById('hd-sel'); sel.innerHTML='';
+  noInsc.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=`${s.nombre} (${cr(s)} clases)`;sel.appendChild(o);});
+  sel.style.display=noInsc.length&&(slot&&inscList.length<slot.cupos)?'':'none';
+  document.querySelector('[onclick="inscribirHorario()"]').style.display=noInsc.length&&(slot&&inscList.length<slot.cupos)?'':'none';
+}
+
+function cerrarDetalleHorario(){
+  detalleHorario=null;
+  document.getElementById('horarios-grid').closest('.card').style.display='block';
+  document.getElementById('horario-detalle-wrap').style.display='none';
+}
+
+function agregarHorario(dia){const input=document.getElementById('nh-'+dia),hora=input.value;if(!hora)return;if(!horarios[dia])horarios[dia]=[];if(horarios[dia].find(s=>s.hora===hora))return;horarios[dia].push({hora,cupos:15});horarios[dia].sort((a,b)=>a.hora.localeCompare(b.hora));input.value='';guardarDatos();renderHorarios();}
+function inscribirHorario(){if(!detalleHorario)return;const{dia,hora}=detalleHorario,id=parseInt(document.getElementById('hd-sel').value);if(!inscritos[dia])inscritos[dia]={};if(!inscritos[dia][hora])inscritos[dia][hora]=[];const slot=(horarios[dia]||[]).find(s=>s.hora===hora);if(!slot||inscritos[dia][hora].length>=slot.cupos)return;if(!inscritos[dia][hora].includes(id))inscritos[dia][hora].push(id);guardarDatos();renderDetalleHorario();}
+function desinscribirHorario(id){if(!detalleHorario)return;const{dia,hora}=detalleHorario;if(inscritos[dia]&&inscritos[dia][hora])inscritos[dia][hora]=inscritos[dia][hora].filter(x=>x!==id);guardarDatos();renderDetalleHorario();}
+function eliminarHorarioActivo(){if(!detalleHorario)return;const{dia,hora}=detalleHorario;horarios[dia]=(horarios[dia]||[]).filter(s=>s.hora!==hora);if(inscritos[dia])delete inscritos[dia][hora];guardarDatos();cerrarDetalleHorario();renderHorarios();}
+
+// ── HISTORIAL ──
+function renderHistorialLista(){
+  const div=document.getElementById('hist-lista'); div.innerHTML='';
+  socios.forEach(s=>{
+    const total=tpSocio(s.id),pagos=(historialPagos[s.id]||[]).length;
+    const row=document.createElement('div'); row.className='hist-socio-row'; row.onclick=()=>verHistorialSocio(s.id);
+    row.innerHTML=`<div class="avatar">${ini(s.nombre)}</div><div class="socio-info"><div class="nombre">${s.nombre}</div><div class="sub">${pagos} pago${pagos===1?'':'s'} · ${s.plan}</div></div><div style="text-align:right"><div style="font-size:14px;font-weight:600;color:var(--green)">${fmt(total)}</div></div><span style="font-size:20px;color:var(--text3);margin-left:6px">›</span>`;
+    div.appendChild(row);
+  });
+}
+
+function verHistorialSocio(id){
+  histSocioId=id; const s=socios.find(x=>x.id===id);
+  document.getElementById('hist-lista-wrap').style.display='none';
+  document.getElementById('hist-detalle-wrap').style.display='block';
+  document.getElementById('hist-avatar').textContent=ini(s.nombre);
+  document.getElementById('hist-nombre').textContent=s.nombre;
+  document.getElementById('hist-sub').textContent=s.plan+' · '+s.tel;
+  document.getElementById('hp-fecha').value=hoy();
+  document.getElementById('hp-plan').value=s.plan;
+  document.getElementById('hp-nota').value='';
+  document.getElementById('hp-plan').onchange=previsualizarRenovacion;
+  document.getElementById('hp-fecha').onchange=previsualizarRenovacion;
+  previsualizarRenovacion();
+  renderTimeline(id);
+}
+
+function previsualizarRenovacion(){
+  if(!histSocioId)return;
+  const s=socios.find(x=>x.id===histSocioId),plan=document.getElementById('hp-plan').value,fecha=document.getElementById('hp-fecha').value;
+  const prev=document.getElementById('hp-preview');
+  if(!fecha||!s){prev.style.display='none';return;}
+  const nf=calcNuevaFecha(s,plan,fecha);
+  const nfStr=new Date(nf+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'long',year:'numeric'});
+  prev.style.display='block';
+  prev.textContent=`Renovará hasta el ${nfStr} · clases reiniciadas a 0/${PLANES[plan].total}`;
+}
+
+function registrarPago(){
+  if(!histSocioId)return;
+  const plan=document.getElementById('hp-plan').value,fecha=document.getElementById('hp-fecha').value,nota=document.getElementById('hp-nota').value.trim();
+  if(!fecha)return;
+  const s=socios.find(x=>x.id===histSocioId); if(!s)return;
+  const nf=calcNuevaFecha(s,plan,fecha);
+  s.plan=plan; s.vence=nf; s.pagado=true; s.clasesUsadas=0;
+  if(!historialPagos[histSocioId])historialPagos[histSocioId]=[];
+  historialPagos[histSocioId].unshift({id:'h'+Date.now(),plan,monto:PLANES[plan].precio,fecha,nota,renovacion:nf});
+  guardarDatos(); previsualizarRenovacion(); renderTimeline(histSocioId); renderAll();
+  document.getElementById('hp-nota').value='';
+}
+
+function renderTimeline(id){
+  const pagos=(historialPagos[id]||[]).slice().sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  document.getElementById('hist-total').textContent=fmt(tpSocio(id));
+  const tl=document.getElementById('hist-timeline'),empty=document.getElementById('hist-empty');
+  tl.innerHTML='';
+  if(!pagos.length){empty.style.display='block';return;}
+  empty.style.display='none';
+  pagos.forEach(p=>{
+    const item=document.createElement('div'); item.className='timeline-item';
+    item.innerHTML=`<div class="tl-dot"></div><div class="tl-content"><div class="tl-row"><span class="tl-plan">${p.plan}</span><span class="tl-monto">${fmt(p.monto)}</span></div><div class="tl-fecha">${new Date(p.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'long',year:'numeric'})}</div>${p.renovacion?`<div class="tl-renovacion">Renovado hasta: ${new Date(p.renovacion+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'long'})}</div>`:''}${p.nota?`<div style="font-size:12px;color:var(--text2);margin-top:2px">${p.nota}</div>`:''}</div><button onclick="eliminarPagoHist('${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:16px;padding:0 4px;align-self:center">✕</button>`;
+    tl.appendChild(item);
+  });
+}
+
+function eliminarPagoHist(pid){if(!histSocioId)return;historialPagos[histSocioId]=(historialPagos[histSocioId]||[]).filter(p=>p.id!==pid);guardarDatos();renderTimeline(histSocioId);}
+function volverHistorial(){histSocioId=null;document.getElementById('hist-detalle-wrap').style.display='none';document.getElementById('hist-lista-wrap').style.display='block';renderHistorialLista();}
+
+// ── RESUMEN ──
+function todosPagos(){const l=[];Object.entries(historialPagos).forEach(([id,pagos])=>{const s=socios.find(x=>x.id===parseInt(id));if(!s)return;pagos.forEach(p=>l.push({...p,socioNombre:s.nombre,socioId:parseInt(id)}));});return l;}
+function pagosDeMes(y,m){return todosPagos().filter(p=>{const d=new Date(p.fecha+'T12:00:00');return d.getFullYear()===y&&d.getMonth()===m;});}
+function cambiarMes(d){mesVista.m+=d;if(mesVista.m<0){mesVista.m=11;mesVista.y--;}if(mesVista.m>11){mesVista.m=0;mesVista.y++;}renderResumen();}
+
+function renderResumen(){
+  const{y,m}=mesVista;
+  document.getElementById('mes-titulo').textContent=MESES[m]+' '+y;
+  const pagos=pagosDeMes(y,m),total=pagos.reduce((a,p)=>a+p.monto,0),activos=new Set(pagos.map(p=>p.socioId)).size;
+  document.getElementById('res-ingresos').textContent=fmt(total);
+  document.getElementById('res-pagos').textContent=pagos.length;
+  document.getElementById('res-activos').textContent=activos;
+  const porPlan={'8 clases':0,'12 clases':0,'20 clases':0};
+  pagos.forEach(p=>{if(porPlan[p.plan]!==undefined)porPlan[p.plan]+=p.monto;});
+  const maxV=Math.max(...Object.values(porPlan),1);
+  const barras=document.getElementById('res-barras'); barras.innerHTML='';
+  Object.entries(porPlan).forEach(([plan,val])=>{const pct=Math.round(val/maxV*100);const row=document.createElement('div');row.className='bar-row';row.innerHTML=`<div class="bar-label">${plan}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><div class="bar-val">${fmt(val)}</div>`;barras.appendChild(row);});
+  const meses6=[];for(let i=5;i>=0;i--){let mm=m-i,yy=y;if(mm<0){mm+=12;yy--;}meses6.push({y:yy,m:mm,label:MESES[mm].substring(0,3)});}
+  const totales=meses6.map(x=>pagosDeMes(x.y,x.m).reduce((a,p)=>a+p.monto,0));
+  const maxT=Math.max(...totales,1);
+  const chart=document.getElementById('chart-6m'); chart.innerHTML='';
+  meses6.forEach((mes,i)=>{const pct=Math.max(Math.round(totales[i]/maxT*100),4),isAct=mes.y===y&&mes.m===m;const col=document.createElement('div');col.className='chart-col';col.innerHTML=`<div class="chart-val">${totales[i]>0?fmt(totales[i]).replace('$',''):'—'}</div><div class="chart-bar ${isAct?'active':''}" style="height:${pct}%"></div><div class="chart-mes" style="font-weight:${isAct?'600':'400'}">${mes.label}</div>`;chart.appendChild(col);});
+  const det=document.getElementById('res-detalle'),emp=document.getElementById('res-empty');det.innerHTML='';
+  if(!pagos.length){emp.style.display='block';return;}emp.style.display='none';
+  pagos.slice().sort((a,b)=>b.fecha.localeCompare(a.fecha)).forEach(p=>{const row=document.createElement('div');row.className='socio-item';row.innerHTML=`<div class="avatar">${ini(p.socioNombre)}</div><div class="socio-info"><div class="nombre">${p.socioNombre}</div><div class="sub"><span class="plan-pill">${p.plan}</span> · ${new Date(p.fecha+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'short'})}</div></div><div style="font-size:14px;font-weight:600;color:var(--green)">${fmt(p.monto)}</div>`;det.appendChild(row);});
+}
+
+// ── ACCIONES ──
+function cambiarClases(id,delta){const s=socios.find(x=>x.id===id);if(!s)return;s.clasesUsadas=Math.min(PLANES[s.plan].total,Math.max(0,(s.clasesUsadas||0)+delta));guardarDatos();renderAll();}
+function togglePago(id){const s=socios.find(x=>x.id===id);if(s){s.pagado=!s.pagado;guardarDatos();renderAll();}}
+function toggleAsistencia(id){asistencias[id]=!asistencias[id];if(asistencias[id]){const s=socios.find(x=>x.id===id);if(s&&(s.clasesUsadas||0)<PLANES[s.plan].total){s.clasesUsadas=(s.clasesUsadas||0)+1;guardarDatos();}}renderAll();}
+function actualizarVence(){const p=document.getElementById('f-plan').value,d=new Date();d.setDate(d.getDate()+PLANES[p].dias);document.getElementById('f-vence').value=d.toISOString().split('T')[0];}
+function openDrawer(id){editId=id||null;document.getElementById('drawer-titulo').textContent=editId?'Editar socio':'Nuevo socio';if(editId){const s=socios.find(x=>x.id===editId);document.getElementById('f-nombre').value=s.nombre;document.getElementById('f-tel').value=s.tel;document.getElementById('f-plan').value=s.plan;document.getElementById('f-vence').value=s.vence;}else{document.getElementById('f-nombre').value='';document.getElementById('f-tel').value='';document.getElementById('f-plan').value='8 clases';actualizarVence();}document.getElementById('drawer-bg').classList.add('open');}
+function closeDrawer(){document.getElementById('drawer-bg').classList.remove('open');}
+function closeDrawerBg(e){if(e.target.id==='drawer-bg')closeDrawer();}
+function guardarSocio(){const nombre=document.getElementById('f-nombre').value.trim();if(!nombre)return;const np=document.getElementById('f-plan').value;if(editId){const s=socios.find(x=>x.id===editId);if(s.plan!==np)s.clasesUsadas=0;s.nombre=nombre;s.tel=document.getElementById('f-tel').value;s.plan=np;s.vence=document.getElementById('f-vence').value;}else{socios.push({id:Date.now(),nombre,tel:document.getElementById('f-tel').value,plan:np,vence:document.getElementById('f-vence').value,pagado:false,clasesUsadas:0});}closeDrawer();guardarDatos();renderAll();}
+
+function showSection(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-bottom button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active'); btn.classList.add('active');
+  if(id==='horarios'){renderHorarios();}
+  if(id==='historial'){volverHistorial();}
+  if(id==='resumen'){renderResumen();}
+}
+
+function renderAll(){renderAlertas();renderMetrics();renderSocios();renderPagos();renderAsistencia();}
+
+// ── SERVICE WORKER ──
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
+
+cargarDatos(); renderAll();
+</script>
+</body>
+</html>
